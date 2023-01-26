@@ -1,0 +1,52 @@
+import cv2
+import mediapipe as mp
+import time
+
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+#cap = cv2.VideoCapture(0)
+
+mpHands = mp.solutions.hands
+hands = mpHands.Hands()
+mpDraw = mp.solutions.drawing_utils
+
+pTime = 0
+cTime = 0
+
+
+
+while True:
+    success, img = cap.read()
+    img = cv2.flip(img, 1)
+
+    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # THIS IS DECREASING THE FPS
+    results = hands.process(imgRGB)
+    # THIS IS DECREASING THE FPS ^^^^^^
+
+
+    #print(results.multi_hand_landmarks)
+
+    if results.multi_hand_landmarks:
+        for handLmk in results.multi_hand_landmarks:
+            for id, lm in enumerate(handLmk.landmark):
+                h, w, c = img.shape
+                cx, cy = int(lm.x * w), int(lm.y * h)
+
+                #if id == 4:
+                    #cv2.circle(img, (cx, cy), 15, (255,0,255), cv2.FILLED)
+
+                #if id == 8:
+                    #cv2.circle(img, (cx, cy), 15, (255, 0, 255), cv2.FILLED)
+
+
+            mpDraw.draw_landmarks(img, handLmk, mpHands.HAND_CONNECTIONS)
+
+    cTime = time.time()
+    fps = 1/(cTime - pTime)
+    pTime = cTime
+
+    cv2.putText(img, str(int(fps)), (10, 70,), cv2.FONT_HERSHEY_PLAIN, 3, (250, 0, 500), 3)
+
+    cv2.imshow("preview", img)
+    cv2.waitKey(1)
